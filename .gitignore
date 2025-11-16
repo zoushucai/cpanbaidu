@@ -1,0 +1,41 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Environments
+.venv/
+.env
+.ruff_cache/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Archives
+*.zip
+*.rar
+*.tar.gz
+*.part
+
+# Logs & Data
+*.log
+*.json
+*.pdf
+
+# Test files
+test*/
+test*.py
+testpdf/
+
+# Virtual environments
+.venv/
+downloads
+*.rar
+downloads5
+site/
