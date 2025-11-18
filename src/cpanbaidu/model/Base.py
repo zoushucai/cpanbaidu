@@ -2,8 +2,9 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
+
 class UserInfoModel(BaseModel):
-    username: str 
+    username: str
     userid: str
     isvip: bool | None = None
     viptype: int | None = None

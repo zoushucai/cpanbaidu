@@ -62,7 +62,7 @@ class Auth(OAuth):
             log.error(f"请求方法: {method}, URL: {url}")
             log.error(f"原始响应: {resp.text if 'resp' in locals() else '无响应'}")
             raise ValueError("请求过程中发生错误，请检查日志以获取详细信息。") from e
-        
+
         try:
             parsed = BaseResponse.model_validate(respjson)
             return parsed.model_dump()

@@ -3,9 +3,10 @@ from typing import Literal
 from pydantic import validate_call
 
 from .Auth import Auth
-from .utils.Constants import API
-from .model.UserModel import uinfoParams, uinfoResponse
 from .model.Base import UserInfoModel
+from .model.UserModel import uinfoParams, uinfoResponse
+from .utils.Constants import API
+
 
 class User:
     """
@@ -14,15 +15,15 @@ class User:
 
     def __init__(self, auth: Auth):
         """用户信息类初始化
-        
+
         Args:
             auth: Auth 类实例
-            
+
         """
         self.auth = auth
         self._user_resp_cache = None
-        self.userinfo: UserInfoModel  = self._fetch_user_info()
-    
+        self.userinfo: UserInfoModel = self._fetch_user_info()
+
     def uinfo(self, vip_version: str | None = None) -> dict:
         """获取用户信息
 
@@ -38,10 +39,9 @@ class User:
             包含用户信息的字典
         """
 
-        
         if self._user_resp_cache is not None:
             return self._user_resp_cache
-        
+
         params_model = uinfoParams(vip_version=vip_version)
         params = params_model.model_dump(exclude_none=True)  # 仅包含非 None 字段
         respjson = self.auth.request_json("GET", API.UserPath.USER_INFO, params=params)
@@ -49,7 +49,7 @@ class User:
 
         self._user_resp_cache = uinfoResponse.model_dump(parsed)
         return respjson
-    
+
     def _fetch_user_info(self) -> UserInfoModel:
         """获取并缓存用户信息
 
@@ -63,7 +63,7 @@ class User:
             resp = self.uinfo()
         except Exception as e:
             raise ValueError("无法获取用户信息") from e
-        
+
         try:
             username = resp.get("baidu_name") or "未知用户"
             userid = str(resp.get("uk") or "0")
