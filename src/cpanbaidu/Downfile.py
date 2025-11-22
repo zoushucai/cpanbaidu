@@ -1,22 +1,23 @@
 from pathlib import Path, PurePosixPath
+from typing import Optional
 
 from cpanbaidu.model.Base import UserInfoModel
 
 from .Auth import Auth
-from .utils.Constants import UA  
 from .File import File
-from .utils.download import download_file
 from .model.Base import AuthError
-from typing import Optional
+from .utils.Constants import UA
+from .utils.download import download_file
+
 
 class DownFile:
     def __init__(self, auth: Auth, userinfo: Optional[UserInfoModel] = None):
         """下载文件类
-        
+
         Args:
             auth: Auth 类实例
             userinfo: 用户信息模型实例
-        
+
         """
         self.auth = auth
         self.file = File(auth, userinfo)
@@ -90,15 +91,23 @@ class DownFile:
             print(f"✅ 开始下载: {filebd}")
             print(f"➡️ 保存至: {output_path}")
         if self.userinfo is None:
-            block_size=4
+            block_size = 4
         elif self.userinfo.viptype == 1:
-            block_size=16
+            block_size = 16
         elif self.userinfo.viptype == 2:
-            block_size=32
+            block_size = 32
         else:
-            block_size=4
-            
-        download_file(url=dlink, output_path=output_path, headers={"User-Agent": UA}, overwrite=overwrite, verbose=verbose, block_size = block_size, expected_md5=None)
+            block_size = 4
+
+        download_file(
+            url=dlink,
+            output_path=output_path,
+            headers={"User-Agent": UA},
+            overwrite=overwrite,
+            verbose=verbose,
+            block_size=block_size,
+            expected_md5=None,
+        )
 
     # 批量目录
     def downdir(

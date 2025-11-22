@@ -6,8 +6,9 @@ from threading import Lock
 from typing import Any, Literal, Optional
 
 from pydantic import validate_call
-from .model.Base import UserInfoModel
+
 from .Auth import Auth
+from .model.Base import UserInfoModel
 from .utils.Constants import API
 from .utils.md5 import (
     calculate_md5,
@@ -19,7 +20,7 @@ from .utils.md5 import (
 class Upload:
     def __init__(self, auth: Auth):
         """上传类
-        
+
         Args:
             auth: Auth 类实例
         """
@@ -292,11 +293,11 @@ class UploadFile:
 
     def __init__(self, auth: Auth, userinfo: Optional[UserInfoModel] = None):
         """上传文件类
-        
+
         Args:
             auth: Auth 类实例
             userinfo: 用户信息模型实例
-        
+
         """
         self.up = Upload(auth)
         self.userinfo = userinfo
@@ -365,13 +366,13 @@ class UploadFile:
         使用多线程方式将本地文件上传到百度网盘.
         """
         if self.userinfo is None:
-            block_size=4
+            block_size = 4
         elif self.userinfo.viptype == 1:
-            block_size=16
+            block_size = 16
         elif self.userinfo.viptype == 2:
-            block_size=32
+            block_size = 32
         else:
-            block_size=4
+            block_size = 4
         block_size = block_size * 1024 * 1024  # Convert MB to bytes
 
         file_path = Path(local_filename)
@@ -679,7 +680,9 @@ class UploadFile:
                         results["success_count"] += 1
                         if show_progress:
                             # 只在完成时输出一行
-                            print(f"✅ [{results['success_count'] + results['failed_count']}/{total_files}] {file_name}")
+                            print(
+                                f"✅ [{results['success_count'] + results['failed_count']}/{total_files}] {file_name}"
+                            )
                     else:
                         results["failed"].append(
                             {
@@ -690,7 +693,9 @@ class UploadFile:
                         )
                         results["failed_count"] += 1
                         if show_progress:
-                            print(f"❌ [{results['success_count'] + results['failed_count']}/{total_files}] {file_name} (返回None)")
+                            print(
+                                f"❌ [{results['success_count'] + results['failed_count']}/{total_files}] {file_name} (返回None)"
+                            )
 
             except Exception as e:
                 with results_lock:
@@ -704,7 +709,9 @@ class UploadFile:
                     results["failed_count"] += 1
                     if show_progress:
                         error_msg = str(e)[:50]  # 限制错误信息长度
-                        print(f"❌ [{results['success_count'] + results['failed_count']}/{total_files}] {file_name} ({error_msg})")
+                        print(
+                            f"❌ [{results['success_count'] + results['failed_count']}/{total_files}] {file_name} ({error_msg})"
+                        )
 
         # 使用多线程并发上传文件
         print(f"🚀 开始多线程上传, 文件并发数: {file_max_workers}")

@@ -4,18 +4,19 @@ from typing import Any, Literal, Optional
 from pydantic import validate_call
 
 from .Auth import Auth
-from .utils.Constants import API
-from .model.FileModel import listallParams, listParams
 from .model.Base import UserInfoModel
+from .model.FileModel import listallParams, listParams
+from .utils.Constants import API
+
 
 class File:
     def __init__(self, auth: Auth, userinfo: Optional[UserInfoModel] = None):
         """文件操作类
-        
+
         Args:
             auth: Auth 类实例
             userinfo: 用户信息模型实例
-        
+
         """
         self.auth = auth
         self.userinfo = userinfo
@@ -257,7 +258,13 @@ class File:
 
     @validate_call
     def btlist(
-        self, parent_path: str = "/", page: int = 1, num: int = 100, order: Literal["name", "size", "time"] = "name", desc: int = 1, recursion: int = 0
+        self,
+        parent_path: str = "/",
+        page: int = 1,
+        num: int = 100,
+        order: Literal["name", "size", "time"] = "name",
+        desc: int = 1,
+        recursion: int = 0,
     ) -> dict[str, Any] | None:
         """获取bt列表
 
