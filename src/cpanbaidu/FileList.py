@@ -1,33 +1,14 @@
-import json
 import time
-from pathlib import Path
 from typing import Any, Dict, Literal, Optional
 
-from pydantic import ConfigDict, model_validator, validate_call, BaseModel
+from pydantic import validate_call
 from ratelimit import limits, sleep_and_retry
 
 from .Auth import Auth
 from .File import File
-from .model.Base import UserInfoModel
+from .model.Base import FileListBaiduResponseModel, UserInfoModel
 from .utils.Logger import log
 from .utils.md5 import decrypt_md5
-
-class FileListResponseModel(BaseModel):
-    model_config = ConfigDict(extra="allow")  # ✅ 保留所有未定义字段
-    errno: int
-    request_id: str
-    list: list[Dict[str, Any]]
-
-    #且list中必须 有 isdir 字段
-    @model_validator(mode="after")
-    def check_state(self) -> "FileListResponseModel":
-        """验证 list 的每个项是否包含 isdir 字段，失败时抛出 AuthError
-        如果为空, 也通过验证
-        """
-        for item in self.list:
-            if "isdir" not in item:
-                raise ValueError("list 中的项缺少 isdir 字段")
-        return self
 
 
 class FileList:
@@ -52,7 +33,8 @@ class FileList:
             raise ValueError("safe_listall 调用失败") from e
 
     @validate_call
-    def get_file_list(self,
+    def get_file_list(
+        self,
         path: str = "/",
         recursion: Literal[0, 1] = 0,
         order: Literal["name", "size", "time"] = "name",
@@ -61,14 +43,14 @@ class FileList:
         limit: int = 100,
         ctime: Optional[int] = None,
         mtime: Optional[int] = None,
-        web: Literal[0, 1] =0,
+        web: Literal[0, 1] = 0,
         device_id: Optional[str] = None,
     ) -> dict:
         """
         获取指定目录的全部文件列表，自动处理翻页，返回所有条目，结构与百度网盘接口一致。
 
         如果要递归获取子目录文件，请设置 recursion 参数为1。
-    
+
         Args:
             path: 目录名称绝对路径, 必须/开头；
             recursion: 是否递归,0为否, 1为是, 默认为0 当目录下存在文件夹，并想获取到文件夹下的子文件时，可以设置 recursion 参数为1，即可获取到更深目录层级的文件。
@@ -118,7 +100,7 @@ class FileList:
                 has_more_int = respjson.get("has_more", 0)
                 has_more = has_more_int == 1
                 cursor = respjson.get("cursor", 0)
-                
+
                 tries = 0  # 成功后重置重试计数
             except Exception as e:
                 log.error(f"获取文件列表异常: {e}")
@@ -126,8 +108,8 @@ class FileList:
                 time.sleep(2 * tries)
                 continue
         if tries >= max_tries:
-            log.error(f"获取文件列表失败，已达到最大重试次数")
-        
+            log.error("获取文件列表失败，已达到最大重试次数")
+
         return {
             "errno": 0,
             "request_id": request_id,
@@ -139,7 +121,8 @@ class FileList:
         }
 
     @validate_call
-    def toshare123(self, 
+    def toshare123(
+        self,
         path: str = "/",
         recursion: Literal[0, 1] = 0,
         order: Literal["name", "size", "time"] = "name",
@@ -148,9 +131,9 @@ class FileList:
         limit: int = 100,
         ctime: Optional[int] = None,
         mtime: Optional[int] = None,
-        web: Literal[0, 1] =0,
-        device_id: Optional[str] = None
-        ) -> dict:
+        web: Literal[0, 1] = 0,
+        device_id: Optional[str] = None,
+    ) -> dict:
         """
         将文件列表数据转换为 share123 格式，方便导入到 share123 网站进行分享和管理。
         {
@@ -176,27 +159,18 @@ class FileList:
             }
         """
         respjson = self.get_file_list(
-            path=path,
-            recursion=recursion,
-            order=order,
-            desc=desc,
-            start=start,
-            limit=limit,
-            ctime=ctime,
-            mtime=mtime,
-            web=web,
-            device_id=device_id
+            path=path, recursion=recursion, order=order, desc=desc, start=start, limit=limit, ctime=ctime, mtime=mtime, web=web, device_id=device_id
         )
         return self.toshare123_v2(respjson)
-    
+
     def toshare123_v2(self, data: dict) -> dict:
         """
         将文件列表数据转换为 share123 格式，方便导入到 share123 网站进行分享和管理。
         """
         # 1. 检查输入的data是否包含必要的字段
-        parsed = FileListResponseModel.model_validate(data)
+        parsed = FileListBaiduResponseModel.model_validate(data)
         data = parsed.model_dump()
-    
+
         datalist = [file for file in parsed.list if file.get("isdir", 1) == 0]
         total_size = sum(file.get("size", 0) for file in datalist)
         share123_data = {
@@ -207,19 +181,19 @@ class FileList:
             "totalFilesCount": data.get("total", 0),
             "totalSize": total_size,
             "formattedTotalSize": self._format_size(total_size),
-            "files": self._format_files_for_share123(datalist)
+            "files": self._format_files_for_share123(datalist),
         }
         return share123_data
 
     def _format_size(self, size: float) -> str:
         """格式化文件大小为可读字符串"""
         size = float(size)
-        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        for unit in ["B", "KB", "MB", "GB", "TB"]:
             if size < 1024.0:
                 return f"{size:.2f} {unit}"
             size /= 1024.0
         return f"{size:.2f} PB"
-    
+
     def _safe_decrypt_md5(self, md5str: str) -> str:
         """
         安全解密 MD5 字符串，防止异常中断, 如果解密失败则返回原始字符串
@@ -228,22 +202,19 @@ class FileList:
             return md5str
         try:
             return decrypt_md5(md5str)
-        except Exception as e:
+        except Exception:
             return md5str
-    def _format_files_for_share123(self, datalist: list[Dict[str, Any]]) -> list[Dict[str, Any]]:
+
+    def _format_files_for_share123(self, datalist: list[Dict[str, Any]]) -> list[dict]:
         """格式化文件列表为 share123 所需格式"""
         formatted_files = []
 
         for file in datalist:
             md5 = self._safe_decrypt_md5(file.get("md5", ""))
-            
+
             if len(md5) != 32:
                 continue
 
-            formatted_file = {
-                "etag": md5,
-                "size": str(file.get("size", 0)),
-                "path": file.get("path", "")
-            }
+            formatted_file = {"etag": md5, "size": str(file.get("size", 0)), "path": file.get("path", "")}
             formatted_files.append(formatted_file)
         return formatted_files
