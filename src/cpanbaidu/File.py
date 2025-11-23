@@ -26,7 +26,7 @@ class File:
         self,
         dir: str = "/",
         order: Literal["name", "size", "time"] = "name",
-        desc: Literal[0, 1] = 1,
+        desc: Literal[0, 1] = 0,
         start: int = 0,
         limit: int = 100,
         web: Literal[0, 1] = 1,

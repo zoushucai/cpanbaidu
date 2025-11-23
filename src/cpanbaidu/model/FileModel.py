@@ -17,7 +17,7 @@ class listParams(BaseModel):
     desc: Literal[0, 1] = 1
     start: int = 0
     limit: int = 100
-    web: Literal[0, 1] = 1
+    web: Literal[0, 1] = 0
     folder: Literal[0, 1] = 0
     showempty: Literal[0, 1] = 0
 

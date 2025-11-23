@@ -5,7 +5,7 @@ from .Upload import UploadFile
 from .Downfile import DownFile
 from .utils.Logger import log
 from .File import File
-
+from .FileList import FileList
 class PanBaiduOpenAPI:
     """
     百度开放接口客户端
@@ -28,6 +28,7 @@ class PanBaiduOpenAPI:
         assert self.userinfo is not None, "用户未授权,请先完成授权流程"
         # 将用户信息传递给其他组件
         self.file = File(self.auth, self.userinfo)
+        self.filelist = FileList(self.auth, self.userinfo)
         self.upload = UploadFile(self.auth, self.userinfo)
         self.downfile = DownFile(self.auth, self.userinfo)
         log.info(f"已登录用户: {self.userinfo.username} (ID: {self.userinfo.userid}, ISVIP: {self.userinfo.isvip})")
